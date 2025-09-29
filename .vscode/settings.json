@@ -1,6 +1,7 @@
 {
   "markdownlint.config": {
-    "default": true
-    "MD025": false // Multiple top-level headings in the same document(https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md025.md)
+    "default": true,
+    "MD025": false, // Multiple top-level headings in the same document(https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md025.md)
+    "MD034": false, // Bare URL used(
   },
 }
