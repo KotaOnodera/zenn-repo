@@ -1,0 +1,853 @@
+## はじめに
+
+エンジニアの方もエンジニアではない方も、こんにちは。[MEKIKI X AI ハッカソンもぐもぐ勉強会 Advent Calendar 2025](https://adventar.org/calendars/11880) の 19 日目を担当する小野寺といいます！
+現在は金融業界で SRE としてGoogle CloudのプロジェクトにJoinしています。
+先日は[Google Cloud Partner Top Engineer 2026](
+https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
+
+Google CloudのBlogを眺めていたときに、Cloud Runで “簡単に” n8nを構築できるという記事を見かけました。
+
+https://cloud.google.com/blog/topics/developers-practitioners/deploy-n8n-on-cloud-run/?hl=en
+
+n8nは触ったことはないですが、Cloud Runをデプロイするコマンドを一発叩くとn8nの環境を構築できるらしいので、構築してみました。
+構築することはできましたが、後述する “イマイチポイント” があったので、改善しつつアップデートしています。
+本記事では、Cloud Runを用いてn8n環境の構築について書います。
+
+:::message
+なお、本記事ではn8nの詳細な使い方については言及しません。
+あくまでもn8nの環境をCloud Runで構築することについて言及しています。
+また、Terraformの使い方についても言及していません。
+:::
+
+### 想定対象読者
+
+- **Primary**: n8nのCloud版トライアル終了後のユーザー（中級エンジニア）
+  - ノーコード/ローコードツールに興味があるが、月額課金を避けたい
+  - GCPの基礎知識あり（プロジェクト作成・gcloudコマンド操作可能）
+- **Secondary**: Cloud Runの実践的な使用例を探しているSRE/インフラエンジニア
+  - IAP、永続化、サービス間連携の具体例を求めている
+
+セルフホスト版は構築する基盤のランニングコストはかかりますが、n8n自体のコストは無料でProプランと同等の機能を利用することが可能です。
+特にCloud Runには無料枠が存在するので、うまく使えば月額0円でn8nのPro版を利用することも可能かと思います。(データを永続化したり、カスタマイズする場合は他のリソースのコストはかかりますが...)
+
+> - CPU - 毎月最初の **240,000 vCPU 秒は無料**
+> - RAM - 毎月最初の **450,000 GiB 秒は無料**
+
+https://cloud.google.com/run/pricing?hl=ja
+
+また、Google Cloudの初期利用には無料クレジットが付与されるので、クレジットの枠内であればいくら使っても無料になります。
+> $300 相当の 90 日間無料トライアル
+
+https://docs.cloud.google.com/free/docs/free-cloud-features?hl=ja
+
+## 概要
+
+前述した通り、[Google Cloud Blog](https://cloud.google.com/blog/topics/developers-practitioners/deploy-n8n-on-cloud-run/?hl=en)をもとにCloud Runにn8n環境を構築します。
+ワンライナーのコマンドで “簡単に” 構築することはできますが、”イマイチポイント” が複数あるので、改善しつつ構築します。
+
+1. 認証設定がないので誰でもアクセス可能である
+2. データの永続性がない
+3. Google Workspace のツールを利用することができない
+4. スケジュールのトリガー実行タイミングでCloud Runが立ち上がらないはず (未検証)
+
+4つの懸念点を列挙しましたが、Google Cloud/n8nの公式ページを参照すればサクッと解決することができる範囲であったため、本記事では**3つ目まで**を改善していきます。(4つ目は検討完了次第、本記事をアップデート or 追加で記事を書きます。)
+”イマイチポイント” 1に関して本記事で案内している方法は、**Google Workspace (以下GWS) を独自ドメインで契約しており、Google Cloudにおいて組織を作成できる方に限って**いるので、あらかじめご了承ください。(その他の案については、実装次第アップデート予定。詳細は後述。)
+"イマイチポイント" 2, 3に関してはGWSを契約している必要はないので、どなたでも実施可能です。
+
+また、本記事では基本の構築と “イマイチポイント” の1までを`gcloud`コマンドで構築し、”イマイチポイント”の2と3はTerraformにて構築しています。(途中からコマンドを打つのが面倒になりました...)
+念の為、対応している作業を公式ページからコマンドを転記しているので、適宜参照ください。
+
+改善して構築したリソース群をTerraformでIaC化したので、構築内容をすっ飛ばしてリソースを見たい方や手っ取り早く構築したい方は以下を参照してください。ただ、オプションのGWSサービスの有効化については本記事をご参照ください。
+`README.md` に構築方法を記載しているので、適宜参照してみてください。
+
+https://github.com/KotaOnodera/cloud-run-n8n
+
+## 前提条件と必要なもの
+
+Google Cloudに構築するため、前提条件は以下です。
+
+- GWSのアカウント (独自ドメインのアカウント) を契約している
+- Google Cloud プロジェクト作成権限を持つアカウント
+    - 既にプロジェクトを作成済みであれば、オーナー権限を持っていることが望ましい
+- Google Cloud SDK (`gcloud`)がインストール済み
+
+GitHubのTerraformを利用して構築する場合は、以下です。
+
+- Terraform v1.14.0 以上がインストール済み
+
+## ワンライナーで構築
+
+[Google Cloud Blog](https://cloud.google.com/blog/topics/developers-practitioners/deploy-n8n-on-cloud-run/?hl=en)に記載してあるように、以下のワンライナーでn8n環境をCloud Runで構築することが可能です。
+(なお、Google Cloudのプロジェクトは存在する前提です。)
+
+```bash
+gcloud run deploy --image=n8nio/n8n \
+    --allow-unauthenticated \
+    --port=5678 \
+    --no-cpu-throttling \
+    --memory=2Gi
+```
+
+オプションをよく見てみると、 `--allow-unauthenticated` とあるので (そんなことはないと思いますが) URLを知っていれば老若男女、誰でもアクセスが可能になってしまいます。
+”アクセス数が上昇する” = “Cloud Run起動数が増加” = **“コスト爆発”** ということになりかねません。
+
+ということで、簡単にアクセス制御できないかと考えたときに、Preview機能ではありますがIAP (Identity-Aware Proxy) をCloud Runに直接設定できることを知りました。
+IAPを設定することで、Googleアカウントベースの認証をすることが可能になります。
+個人のお遊び環境なのでPreview機能を利用していますが、問題がある方はLoadBalancerにIAPを設定してバックエンドサービスをCloud Runにする方法でお試しください。(参考: [IAP for Cloud Runの有効化](https://docs.cloud.google.com/iap/docs/enabling-cloud-run?hl=ja#enable-from-iap))
+
+https://docs.cloud.google.com/run/docs/securing/identity-aware-proxy-cloud-run?hl=ja
+
+> このページでは、Cloud Run から IAP を有効にし、IAP にルーティングして認証することで、Cloud Run サービスに送信されるトラフィックを保護する方法について説明します。Cloud Run から IAP を有効にすると、デフォルトの **`run.app`** URL やロードバランサなど、すべての上り（内向き）パスからワンクリックでトラフィックをルーティングできます。
+
+Cloud Runに直接IAPを設定できてとても便利ですが、以下の制約事項があることに注意です。
+特に “**プロジェクトが組織内に存在している必要があります。**” についての制約事項は上述しましたが、GWSを独自ドメインで契約している必要があるため、契約していない方はLoadBalancerにIAPを設定する方法を実施してください。(実装後アップデート予定)
+
+> - **プロジェクトが組織内に存在している必要があります。**
+> - ID が同じ組織内のものである必要があります。
+> - ロードバランサと Cloud Run サービスの両方で IAP を構成することはできません。
+> - IAP が有効になっている場合、Pub/Sub などの一部の統合が機能しなくなることがあります。
+
+## Cloud RunにIAPを設定
+
+ここで実施したことはざっくり以下です。
+
+1. IAPのAPIを有効化する
+2. 有効化タイミングで作成されるIAPのサービスエージェントに Cloud Run起動のIAM権限を付与
+3. アクセスするユーザーにIAPで保護されたアプリケーションに接続するIAM権限を付与
+4. Cloud RunのIAP機能を有効化
+
+上記の4つのステップを踏むことで、Cloud Runに直接IAPを設定することができます。
+詳細はG-genさんの記事 ([Cloud Runでロードバランサを使用せずIdentity-Aware Proxy（IAP）を構成する](https://blog.g-gen.co.jp/entry/using-iap-with-cloud-run))で紹介されているので、こちらも合わせて読んでいただければと思います。
+公式ページも用意されているので、こちらも合わせてお読みください。
+
+- [IAP for Cloud Run の有効化](https://docs.cloud.google.com/iap/docs/enabling-cloud-run?hl=ja#console)
+- [IAP for Cloud Run を構成する](https://docs.cloud.google.com/run/docs/securing/identity-aware-proxy-cloud-run?hl=ja#gcloud)
+
+### 1. IAPのAPIを有効化する
+
+プロジェクト作成タイミングではIAPのAPIが有効化されていないため、有効化してください。「IAP」と検索すると以下のような画面が表示され、APIが有効化されていないことが確認できます。
+
+![iap_disable.png](https://storage.googleapis.com/zenn-user-upload/a75d4b3a6082-20251218.png)
+
+以下のコマンドを実行し、APIを有効化してください。
+
+```bash
+# gcloudコマンド実行のための認証
+gcloud auth login --update-adc
+
+# IAPのAPI有効化のためのコマンド
+gcloud services enable iap.googleapis.com --project=[PROJECT_ID]
+
+```
+
+有効化されたAPIの確認。
+
+```bash
+# 有効化されたAPIを一覧表示
+# 'iap.googleapis.com' が存在すればOK
+gcloud services list --enabled
+```
+
+以下のような画面が表示されればOKです。
+
+![image.png](https://storage.googleapis.com/zenn-user-upload/399efe8cc17f-20251218.png)
+
+### 2. IAPのサービスエージェントに権限付与
+
+Cloud Runにアクセスする際、実態はIAPのサービスエージェント[^1]がCloud Runを起動している形になります。
+
+![](https://storage.googleapis.com/zenn-user-upload/4f255095cdf0-20251218.png)
+*[Cloud Runでロードバランサを使用せずIdentity-Aware Proxy（IAP）を構成する | G-gen](https://blog.g-gen.co.jp/entry/using-iap-with-cloud-run)より抜粋*
+
+
+そのため、IAPのサービスエージェントにCloud Runを起動する権限を付与する必要があるので付与します。IAPのサービスエージェントは公式ページによると明示的に作成する必要があるため、作成もしています。
+(前提として、Cloud Runが既に構築済みであること)
+
+```bash
+# IAPサービスエージェントの作成
+gcloud beta services identity create --service=iap.googleapis.com --project=[PROJECT_ID]
+
+# Cloud Run起動 (roles/run.invoker) 権限の付与
+gcloud run services add-iam-policy-binding [CLOUD-RUN-SERVICE-NAME] \
+--member='serviceAccount:service-[PROJECT-NUMBER]@gcp-sa-iap.iam.gserviceaccount.com'  \
+--role='roles/run.invoker'
+
+```
+
+付与された権限の確認。
+
+```bash
+# 権限付与された権限を確認する
+gcloud run services get-iam-policy [CLOUD-RUN-SERVICE-NAME] \
+	--project=[PROJECT_ID] \
+	--filter='bindings.members:serviceAccount:service-[PROJECT-NUMBER]@gcp-sa-iap.iam.gserviceaccount.com' \
+	--flatten="bindings[].members" \
+```
+
+以下のような出力がされていればOK。
+
+```bash
+bindings:
+- members:
+  - serviceAccount:service-[PROJECT-NUMBER]@gcp-sa-iap.iam.gserviceaccount.com
+  role: roles/run.invoker
+```
+
+### 3. ユーザーに接続権限付与
+
+ユーザーのリクエストが最初に到達するのはIAPになるので、IAPに接続するための権限をユーザーが保持している必要があります。
+接続するユーザー (おそらく自分のGoogleアカウント) に `roles/iap.httpsResourceAccessor` を付与してあげることで、ユーザー → IAP → Cloud Runに接続することができるようになります。
+
+```bash
+# USER-EMAILに自身のメールアドレスを入れる
+gcloud projects add-iam-policy-binding [PROJECT_ID] \
+    --member="user:[USER_EMAIL]" \
+    --role="roles/iap.httpsResourceAccessor"
+```
+
+ユーザーに権限が付与されているかを確認。
+
+```bash
+gcloud projects get-iam-policy [PROJECT_ID] \
+    --flatten="bindings[].members" \
+    --filter="bindings.members:user:[USER-EMAIL]"
+```
+
+以下のような出力がされていればOK。
+
+```bash
+---
+bindings:
+  members: user:[USER-EMAIL]
+  role: roles/iap.httpsResourceAccessor
+```
+
+### 4. Cloud RunのIAP機能を有効化
+
+IAPの設定が完了したので、Cloud RunのIAP機能を有効化してあげましょう。
+
+```bash
+gcloud beta run services update [CLOUD-RUN-SERVICE-NAME] \
+--region=[REGION] \
+--iap
+```
+
+IAPが有効化されているかを確認。
+
+```bash
+gcloud beta run services describe [CLOUD-RUN-SERVICE-NAME] | grep "Iap Enabled:"
+```
+
+以下のような出力がされていればOK。
+
+```bash
+# trueであればOK
+Iap Enabled: true
+```
+
+### 動作確認
+
+Cloud Runのコンソール画面を表示し、以下の画像の `URL` ( `https://xxxxxx.yyyyy.app`)にアクセスしてください。
+
+![](https://storage.googleapis.com/zenn-user-upload/15d1bc5f0457-20251218.png)
+
+
+アクセスすると、ログイン認証の画面に遷移するので、自身のアカウントで認証してください。
+
+![iap_login.png](https://storage.googleapis.com/zenn-user-upload/66715ba91b1f-20251218.png)
+
+正常にログインできると以下の画面のように、Cloud Runが立ち上がりn8nが起動している旨のメッセージが表示されます。
+
+![](https://storage.googleapis.com/zenn-user-upload/36ba9fbba126-20251218.png)
+
+Cloud Runのログを見ていくと、立ち上がっているのが見えます。
+`http://localhost:5678` というログが出力されれば、Cloud Runのn8nが準備完了しているので、リロードするとアクセスできます。
+準備完了するまで**大体30秒ほどかかる**ことに注意です。
+
+![cloud_run_start_log.png](https://storage.googleapis.com/zenn-user-upload/2f92a35d8baa-20251218.png)
+
+
+ログイン/リロード後の画面は以下のようなn8nのログイン画面( `/setup`)に遷移します。
+
+![n8n_login.png](https://storage.googleapis.com/zenn-user-upload/30eb7e619b59-20251218.png)
+
+### IAPの設定に失敗していると…
+
+以下のような画面でアクセス権がないと、拒否されてしまいます。設定を見直してみてください。
+
+![iap_access_deny.png](https://storage.googleapis.com/zenn-user-upload/4858c5daee3e-20251218.png)
+
+
+## データに永続性を持たせる
+
+ここからはTerraformベースで記載していきます。(gcloudコマンドで実行するのが面倒になってしまいました...)
+こちらの設定についてはn8nの公式ページにも手順が記載されているので、適宜そちらも参考にしてみてください。公式ページではTerraformも公開されているため、そちらを参考に構築しています。
+
+https://docs.n8n.io/hosting/installation/server-setups/google-cloud-run/#durable-mode
+
+実施したことは以下の通りです。
+
+1. Cloud SQL / SecretManager のAPIを有効化
+2. Terraformでパスワード作成
+3. SecretManagerでSecret作成 / パスワードをSecretに登録
+4. Cloud SQLのインスタンス / データベース / ユーザー作成
+5. Cloud RunにアタッチするためのServiceAccount作成 / IAM権限付与
+6. Cloud Runの更新
+
+念の為、公式ページに記載のコマンドも一緒においておきます。
+なお、Terraform自体の使い方などは別の記事を参照ください。(本記事では言及しません)
+
+### 1. Cloud SQL / SecretManager のAPIを有効化
+
+```hcl:apis.tf
+resource "google_project_service" "n8n_project_services" {
+  project  = "YOUR-PROJECT-ID"
+  for_each = toset(local.services)
+  service  = each.value
+}
+
+locals {
+  services = [
+    # Cloud SQL (データ永続化に利用)
+    "sqladmin.googleapis.com",
+    # Secret Manager
+    "secretmanager.googleapis.com",
+	]
+}
+```
+
+公式ページ
+```bash
+gcloud services enable sqladmin.googleapis.com
+gcloud services enable secretmanager.googleapis.com
+```
+
+### 2. Terraformでパスワード作成
+
+以下のような定義をしてあげるとTerraformでランダムな値を生成してくれます。
+本記事で公開しているTerraformではステートファイルをローカルに保存するように設定しています。
+`random_password`で生成した値はステートファイルに平文で保存されているため、扱いには十分に注意してください。適宜、Google Cloud StorageやS3などを利用してリモートステートファイルにしつつ、暗号化することをご検討ください。
+
+```hcl:cloud_sql.tf
+# Create a random password for the database user
+resource "random_password" "db_password" {
+  length  = 16
+  special = true
+}
+
+# Create a random encryption key
+resource "random_password" "encryption_key" {
+  length  = 42
+  special = true
+}
+
+```
+公式ページではDBのパスワードは任意の値を保存したファイルを配置しており、n8n用の暗号化キーはopensslコマンドでランダム値を生成して、SecretManagerに登録しています。
+
+```bash
+openssl rand -base64 -out my-encryption-key 42
+```
+
+### 3. SecretManagerでSecret作成 / パスワードをSecretに登録
+
+```hcl:secret.tf
+# Store the database password in Secret Manager
+resource "google_secret_manager_secret" "n8n_db_password_secret" {
+  secret_id = "n8n-db-password"
+  project   = local.project_id
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "n8n_db_password_secret_version" {
+  secret      = google_secret_manager_secret.n8n_db_password_secret.id
+  secret_data = random_password.db_password.result
+}
+
+# Store the encryption key in Secret Manager
+resource "google_secret_manager_secret" "n8n_encryption_key_secret" {
+  secret_id = "n8n-encryption-key"
+  project   = local.project_id
+
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "n8n_encryption_key_secret_version" {
+  secret      = google_secret_manager_secret.n8n_encryption_key_secret.id
+  secret_data = random_password.encryption_key.result
+}
+
+```
+
+公式ページコマンドでは上述の通り、DB用のパスワードは自身で定義したものを、n8nの暗号化キーはopensslコマンドで生成したものを利用します。
+
+```bash
+# DB用パスワードの設定
+# '/your/password/file'に自身で設定したパスワードの値が定義されているファイルを指定する
+gcloud secrets create n8n-db-password \
+    --data-file=/your/password/file \
+    --replication-policy="automatic"
+    
+# n8nの暗号化キーの設定
+# opensslコマンドで生成したファイルを指定する
+gcloud secrets create n8n-encryption-key \
+    --data-file=my-encryption-key \
+    --replication-policy="automatic"
+```
+
+### 4. Cloud SQLのインスタンス / データベース / ユーザー作成
+
+```hcl:cloud_sql.tf
+# Create the Cloud SQL for PostgreSQL instance
+resource "google_sql_database_instance" "n8n_db_instance" {
+  name             = "n8n-db"
+  database_version = "POSTGRES_13"
+  region           = local.location
+  project          = local.project_id
+
+  settings {
+    tier              = "db-f1-micro"
+    availability_type = "ZONAL"
+    disk_size         = 10
+    disk_type         = "PD_HDD"
+    backup_configuration {
+      enabled = false
+    }
+  }
+
+  deletion_protection = false
+}
+
+# Create the n8n database
+resource "google_sql_database" "n8n_database" {
+  name     = "n8n"
+  project  = local.project_id
+  instance = google_sql_database_instance.n8n_db_instance.name
+}
+
+# Create the n8n database user
+resource "google_sql_user" "n8n_user" {
+  name     = "n8n-user"
+  project  = local.project_id
+  instance = google_sql_database_instance.n8n_db_instance.name
+  password = random_password.db_password.result
+}
+```
+
+公式ページ
+
+```bash
+# Cloud SQLのインスタンスを作成
+gcloud sql instances create n8n-db \
+    --database-version=POSTGRES_13 \
+    --tier=db-f1-micro \
+    --region=$REGION \
+    --root-password="change-this-password" \
+    --storage-size=10GB \
+    --availability-type=ZONAL \
+    --no-backup \
+    --storage-type=HDD
+    
+# DBの作成
+gcloud sql databases create n8n --instance=n8n-db
+
+# DBのユーザーを作成
+# パスワードは先程設定したパスワードを入力
+gcloud sql users create n8n-user \
+    --instance=n8n-db \
+    --password="YOUR-PASSWORD"
+```
+
+### 5. Cloud RunにアタッチするためのServiceAccount作成 / IAM権限付与
+
+```hcl:iam.tf
+# Create a service account for the Cloud Run service
+resource "google_service_account" "n8n_service_account" {
+  account_id   = "n8n-service-account"
+  display_name = "n8n Service Account"
+  project      = local.project_id
+}
+
+# Grant the service account access to the database password secret
+resource "google_secret_manager_secret_iam_member" "n8n_db_password_secret_accessor" {
+  secret_id = google_secret_manager_secret.n8n_db_password_secret.secret_id
+  project   = local.project_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.n8n_service_account.email}"
+}
+
+# Grant the service account access to the encryption key secret
+resource "google_secret_manager_secret_iam_member" "n8n_encryption_key_secret_accessor" {
+  secret_id = google_secret_manager_secret.n8n_encryption_key_secret.secret_id
+  project   = local.project_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.n8n_service_account.email}"
+}
+
+# Grant the service account the Cloud SQL Client role
+resource "google_project_iam_member" "n8n_cloudsql_client" {
+  project = local.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${google_service_account.n8n_service_account.email}"
+}
+
+```
+
+公式ページ
+
+```bash
+# ServiceAccountの作成
+gcloud iam service-accounts create n8n-service-account \
+    --display-name="n8n Service Account"
+
+# ServiceAccountにDBパスワードのSecretにアクセスする権限付与
+gcloud secrets add-iam-policy-binding n8n-db-password \
+    --member="serviceAccount:n8n-service-account@[PROJECT-ID].iam.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+
+# ServiceAccountにn8n暗号化キーのSecreにアクセスする権限付与
+gcloud secrets add-iam-policy-binding n8n-encryption-key \
+    --member="serviceAccount:n8n-service-account@[PROJECT-ID].iam.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+
+# ServiceAccountにCloud SQLにアクセスする権限付与
+gcloud projects add-iam-policy-binding [PROJECT-ID] \
+    --member="serviceAccount:n8n-service-account@[PROJECT-ID].iam.gserviceaccount.com" \
+    --role="roles/cloudsql.client"
+```
+
+### 6. Cloud Runの更新
+
+```hcl:cloud_run.tf
+resource "google_cloud_run_v2_service" "n8n" {
+  provider             = google-beta
+  name                 = "n8n"
+  project              = local.project_id
+  location             = local.location
+  launch_stage         = "BETA"
+  iap_enabled          = true
+  default_uri_disabled = false
+  deletion_protection  = false
+  description          = "n8n Cloud Run"
+  ingress              = "INGRESS_TRAFFIC_ALL"
+  template {
+    service_account = google_service_account.n8n_service_account.email
+    volumes {
+      name = "cloudsql"
+      cloud_sql_instance {
+        instances = [google_sql_database_instance.n8n_db_instance.connection_name]
+      }
+    }
+    containers {
+      image   = "n8nio/n8n:latest"
+      command = ["/bin/sh"]
+      args    = ["-c", "sleep 5; n8n start"]
+      ports {
+        container_port = 5678
+      }
+      resources {
+        cpu_idle = false
+        limits = {
+          cpu    = "1000m"
+          memory = "2Gi"
+        }
+        startup_cpu_boost = true
+      }
+      startup_probe {
+        failure_threshold     = 1
+        initial_delay_seconds = 30
+        period_seconds        = 240
+        timeout_seconds       = 240
+        tcp_socket {
+          port = 5678
+        }
+      }
+      env {
+        name  = "N8N_PORT"
+        value = "5678"
+      }
+      env {
+        name  = "N8N_PROTOCOL"
+        value = "https"
+      }
+      env {
+        name  = "DB_TYPE"
+        value = "postgresdb"
+      }
+      env {
+        name  = "DB_POSTGRESDB_DATABASE"
+        value = google_sql_database.n8n_database.name
+      }
+      env {
+        name  = "DB_POSTGRESDB_USER"
+        value = google_sql_user.n8n_user.name
+      }
+      env {
+        name  = "DB_POSTGRESDB_HOST"
+        value = "/cloudsql/${google_sql_database_instance.n8n_db_instance.connection_name}"
+      }
+      env {
+        name  = "DB_POSTGRESDB_PORT"
+        value = "5432"
+      }
+      env {
+        name  = "DB_POSTGRESDB_SCHEMA"
+        value = "public"
+      }
+      env {
+        name  = "GENERIC_TIMEZONE"
+        value = "JST"
+      }
+      env {
+        name  = "QUEUE_HEALTH_CHECK_ACTIVE"
+        value = "true"
+      }
+      env {
+        name = "DB_POSTGRESDB_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.n8n_db_password_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "N8N_ENCRYPTION_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.n8n_encryption_key_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+      volume_mounts {
+        mount_path = "/cloudsql"
+        name       = "cloudsql"
+      }
+    }
+    scaling {
+      max_instance_count = 2
+      min_instance_count = 0
+    }
+  }
+  traffic {
+    percent = 100
+    type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+  }
+}
+
+# Output the URL of the Cloud Run service
+output "n8n_url" {
+  value = google_cloud_run_v2_service.n8n.uri
+}
+
+```
+
+公式ページでは新規デプロイしているコマンドでしたが、既存のCloud Runを更新する形に変更しています。(Terraformで更新かけちゃっているので、うまくいかない可能性あります…)
+
+```bash
+gcloud beta run services update [CLOUD-RUN-SERVICE-NAME] \
+		--region=[REGION] \
+    --command="/bin/sh" \
+    --args="-c,sleep 5;n8n start" \
+    --set-env-vars="N8N_PORT=5678,N8N_PROTOCOL=https,DB_TYPE=postgresdb,DB_POSTGRESDB_DATABASE=n8n,DB_POSTGRESDB_USER=n8n-user,DB_POSTGRESDB_HOST=/cloudsql/[PROJECT-ID]:[REGION]:n8n-db,DB_POSTGRESDB_PORT=5432,DB_POSTGRESDB_SCHEMA=public,GENERIC_TIMEZONE=UTC,QUEUE_HEALTH_CHECK_ACTIVE=true" \
+    --set-secrets="DB_POSTGRESDB_PASSWORD=n8n-db-password:latest,N8N_ENCRYPTION_KEY=n8n-encryption-key:latest" \
+    --add-cloudsql-instances=[PROJECT-ID]:[REGION]:n8n-db \
+    --service-account=n8n-service-account@[PROJECT-ID].iam.gserviceaccount.com
+```
+
+### 動作確認
+
+一度メールアドレスやパスワードを登録した後に、Cloud Runがシャットダウンした後に再度アクセスすると、以下の画面のようにログイン画面に遷移します。
+ユーザーの情報が永続化され、データとしてCloud SQLに登録されているため、Cloud Runがシャットダウンした後でもWorkflowが保存されるようになりました！！！
+
+![n8n_login_persisitent.png](https://storage.googleapis.com/zenn-user-upload/679e1f9288a2-20251218.png)
+
+Cloud SQLにもアクセスしているログが出力されていることも確認できます。
+
+![cloud_sql_access_log.png](https://storage.googleapis.com/zenn-user-upload/846130b63208-20251218.png)
+
+
+## Google Workspaceとつなぐ
+
+n8nの醍醐味といえば、Google Workspaceのツール群 (SpreadSheet / Doc / Drive etc…) をノーコード / ローコードで扱うことができることだと思います。(もちろんその他のツールとも接続できますが)
+既存のままの設定だと、GWSのツールを利用できない、もしくは、利用できても永続的な設定にならない (ここは確認していません) と思います。公式ページを見るとオプションとしてGWSサービスをn8nツールとして有効にする手順が公開されているので、実施してみました。
+
+今回実施した内容は以下です。
+
+1. GWS群のAPIを有効化
+2. Cloud Runの環境変数追加
+3. Google Cloud側でOAuthの設定
+
+なお、本セクションでも基本的にTerraformを用いていますが、一部コンソールから設定する必要があるため、その部分についてはコンソールから実施しています。
+
+### 1. GWS群のAPIを有効化
+
+既存の`apis.tf`に追記した形になっています。
+
+```hcl:apis.tf
+resource "google_project_service" "n8n_project_services" {
+  project  = google_project.n8n_project.name
+  for_each = toset(local.services)
+  service  = each.value
+}
+
+locals {
+  services = [
+    # Cloud Run
+    "run.googleapis.com",
+    # Cloud SQL (データ永続化に利用)
+    "sqladmin.googleapis.com",
+    # Secret Manager
+    "secretmanager.googleapis.com",
+    # Identity-Aware Proxy (Cloud Run接続する際の認証に利用)
+    "iap.googleapis.com",
+    # Cloud Resource Manager (Terraformでプロジェクトを管理する際に利用)
+    "cloudresourcemanager.googleapis.com",
+    # Gmail API
+    "gmail.googleapis.com",
+    # Google Drive API
+    "drive.googleapis.com",
+    # Google Sheets API
+    "sheets.googleapis.com",
+    # Google Docs API
+    "docs.googleapis.com",
+    # Google Calendar API
+    "calendar-json.googleapis.com",
+    # Google Tasks API
+    "tasks.googleapis.com",
+  ]
+}
+```
+
+公式ページ
+
+```bash
+# 利用したいサービスのAPIを有効化
+gcloud services enable gmail.googleapis.com
+gcloud services enable drive.googleapis.com
+gcloud services enable sheets.googleapis.com
+gcloud services enable docs.googleapis.com
+gcloud services enable calendar-json.googleapis.com
+gcloud services enable tasks.googleapis.com
+```
+
+### 2. Cloud Runの環境変数追加
+
+以下3つの環境変数を追加する。
+
+1. N8N_HOST (ex. `n8n-12345678.us-west1.run.app`)
+    - Cloud RunのURLから'https://'を取り除いた値
+2. WEBHOOK_URL (ex. `https://n8n-12345678.us-west1.run.app`)
+    - Cloud RunのURL
+3. N8N_EDITOR_BASE_URL (ex. `https://n8n-12345678.us-west1.run.app`)
+    - Cloud RunのURL
+
+```hcl:cloud_run.tf
+resource "google_cloud_run_v2_service" "n8n" {
+  provider             = google-beta
+  name                 = "n8n"
+  project              = local.project_id
+  location             = local.location
+  ~~~~~ 中略 ~~~~~
+    containers {
+      image   = "n8nio/n8n:latest"
+      command = ["/bin/sh"]
+      args    = ["-c", "sleep 5; n8n start"]
+  ~~~~~ 中略 ~~~~~
+  # 以下3つの変数を追加
+      env {
+	      # Cloud RunのURLから'https://'を取り除いた値
+        name  = "N8N_HOST"
+        value = "YOUR-HOST-NAME"
+      }
+      env {
+        name  = "WEBHOOK_URL"
+        value = "YOUR-CLOUD-RUN-URL"
+      }
+      env {
+        name  = "N8N_EDITOR_BASE_URL"
+        value = "YOUR-CLOUD-RUN-URL"
+      }
+~~~~~ 中略 ~~~~~
+}
+```
+
+公式ページ
+
+```bash
+export SERVICE_URL="your-n8n-service-URL"
+## e.g. https://n8n-12345678.us-west1.run.app
+
+gcloud run services update n8n \
+    --region=$REGION \
+    --update-env-vars="N8N_HOST=$(echo $SERVICE_URL | sed 's/https:\/\///'),WEBHOOK_URL=$SERVICE_URL,N8N_EDITOR_BASE_URL=$SERVICE_URL"
+```
+
+### 3. Google Cloud側でOAuthの設定
+
+自身のプロジェクトで”oauth”と検索し”OAuth同意画面”を押下してください。
+
+![oauth_同意画面.png](https://storage.googleapis.com/zenn-user-upload/347aae167fc3-20251218.png)
+
+「Google Auth Platformはまだ構成されていません」と表示されるので、「開始」ボタンを押下してください。
+
+![oauth_開始画面.png](https://storage.googleapis.com/zenn-user-upload/aa4bfd4d33e6-20251218.png)
+
+「アプリ情報」「対象」「連絡先情報」「終了 (ポリシー同意)」を入力して作成を押下してください。
+「対象」についてはGWS内のユーザーのみにアクセスを許可する場合は「内部」、それ以外の場合は「外部」を選択してください。
+
+![auth_構成.png](https://storage.googleapis.com/zenn-user-upload/b91ac27736cb-20251218.png)
+
+「クライアント」を選択し、「クライアントを作成」を押下してください。
+
+![oauth_client.png](https://storage.googleapis.com/zenn-user-upload/5a9441135953-20251218.png)
+
+以下のように入力し、作成を押下してください。
+
+- アプリケーションの種類
+    - 「ウェブアプリケーション」
+- 名前
+    - 任意 (今回はn8nとしています)
+- 承認済みのJavaScript生成元
+    - Cloud RunのURL (ex. `https://n8n-12345678.us-west1.run.app`)
+- 承認済みのリダイレクトURI
+    - Cloud RunのURLに `/rest/oauth2-credential/callback` を付与したもの (ex. `https://n8n-12345678.us-west1.run.app/rest/oauth2-credential/callback`)
+
+![image.png](https://storage.googleapis.com/zenn-user-upload/5d633514302d-20251218.png)
+
+OAuth クライアントが作成されるので、JSONダウンロードしクライアントIDとクライアントシークレットを保存してください。(もちろん画面からコピーでもOK)
+
+![oauth_client_created.png](https://storage.googleapis.com/zenn-user-upload/b1a16e6a4c98-20251218.png)
+
+左ペインから「データアクセス」を選択し、「スコープを追加または削除」を押下してください。
+利用したいサービスのスコープを選択してください。有効化したAPI関連のスコープを追加しておくと良いです。(Spreadsheet / Doc / Calender / Drive etc…)
+
+![oauth_scope.png](https://storage.googleapis.com/zenn-user-upload/398de46a91fe-20251218.png)
+
+### 動作確認
+
+n8nにログインし、トリガーをテキトウに選択し、GWS系のフローを選択してください。
+
+![GWS_select.png](https://storage.googleapis.com/zenn-user-upload/6cdd359923fd-20251218.png)
+
+
+「Select Credential」を押下し、「Create new credential」を押下すると、クライアントID / クライアントシークレットを入力する画面が出てきます。
+保存したクライアントID / クライアントシークレットを登録すると、認証画面が開き、認証成功すると以下のような画面が表示されます。
+
+![oauth_authrization.png](https://storage.googleapis.com/zenn-user-upload/2c5ed6076357-20251218.png)
+
+認証成功すると、n8n内でGWS関連のツールが利用可能になっています！！
+
+![n8n_google_calender.png](https://storage.googleapis.com/zenn-user-upload/14a778829890-20251218.png)
+
+## おわりに
+
+コンテナイメージなので、まだまだチューニングできる部分はありそうなのでしていきたいです。
+1ヶ月くらいテキトウに使ってみて、稼働時間と総コストとかも今後追記しています。
+
+[^1]: サービスエージェントとは、Google Cloud サービスが内部的に用いる特別なアカウントである。サービスが有効化されるタイミングなどで自動で作成されることが多い。
