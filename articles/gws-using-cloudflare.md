@@ -1,0 +1,29 @@
+---
+title: "Cloudflareでドメインを取得してGoogle Workspaceを契約する"
+emoji: "⛅️"
+type: "idea" # tech: 技術記事 / idea: アイデア
+topics:
+  - "googleworkspace"
+  - "cloudflare"
+published: false
+---
+
+## はじめに
+
+エンジニアの方もエンジニアではない方も、こんにちは。現在は金融業界で SRE としてGoogle CloudのプロジェクトにJoinしていましたが、最近プロジェクトが変わり、AWSに挑戦しています。
+先日は[Google Cloud Partner Top Engineer 2026](
+https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
+
+## なぜCloudflareでドメインを取得すべきなのか
+
+## 想定読者
+
+## 概要
+
+## 前提条件
+
+## Cloudflareでドメインを取得
+
+## Google WorkspaceをCloudflareのドメインで契約
+
+## おわりに
