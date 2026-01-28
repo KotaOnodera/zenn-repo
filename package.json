@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/KotaOnodera/zenn-repo#readme",
   "dependencies": {
-    "zenn-cli": "^0.4.0"
+    "zenn-cli": "^0.4.2"
   }
 }
