@@ -1,5 +1,5 @@
 ---
-title: "Cloudflareでドメインを取得して半額のコストでGoogle Workspaceを契約しよう"
+title: "Cloudflareでドメインを取得して個人でGoogle Workspaceを契約しよう"
 emoji: "⛅️"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics:
@@ -16,8 +16,8 @@ published: false
 先日は[Google Cloud Partner Top Engineer 2026](
 https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
 
-みなさんは、Google Workspace (以下GWS) を契約していますか？GWSを契約し、各種機能を利用するにあたり、独自ドメインを所得・登録する必要があります。独自ドメインを取得する方法はたくさんありますが、私は (金額や運用も含めて) 最もコストがかからないのは**Cloudflareでドメインを取得する方法**だと思っています。
-私はCloudflareで `.org`ドメインを年間$10で契約してGWSは月額1,900円で契約しています。**なぜ、Cloudflareでドメインを取得することになったのか、ドメイン取得からGWSの契約の手順を簡単に解説しようと思います**。
+みなさんは、Google Workspace (以下GWS) を契約していますか？GWSを契約し、各種機能を利用するにあたり、独自ドメインを取得・登録する必要があります。独自ドメインを取得する方法はたくさんありますが、私は (金額や運用も含めて) 最もコストがかからないのは**Cloudflareでドメインを取得する方法**だと思っています (あくまでも個人の見解です)。
+私はCloudflareで `.org`ドメインを年間$10で契約して、GWSは月額1,900円で契約しています。**なぜ、Cloudflareでドメインを取得することになったのか、ドメイン取得からGWSの契約の手順を簡単に解説しようと思います**。
 
 ## 想定読者
 
@@ -39,7 +39,7 @@ Googleのエコシステムの画像ですが、AIを中心に据えて、多種
 *Googleのエコシステム*
 
 元々、[Google AI Pro](https://one.google.com/intl/ja_jp/about/google-ai-plans/)を契約していました。こちらの契約は月額2,900円です。私は[Standardプラン](https://workspace.google.co.jp/pricing?hl=ja)を契約している (月額契約で1,900円) のですが、契約単体で見ると1,000円近くコストカットできます。また、契約した当時にGWSのアルファ機能としてGoogle Workspace Flows (現在は[Google Workspace Studioというサービス名に変更されています](https://dev.classmethod.jp/articles/trying-google-workspace-flows-alpha/))というサービスがリリースされ、使ってみたいと思いGWSに移行しようと思い立ちました。
-Google AI Proを契約していたので、Google系のサービスは以前から課金して利用していました。Gemini / NotebookLM / Google Drive etc...などなどを利用しており、特にNotebookLMにはお世話になりました。[^1]Google AI ProからGWSへ移行しましたが、使用感としてはあまり変わらない印象です。
+Google AI Proを契約していたので、Google系のサービスは以前から課金して利用していました。Gemini / NotebookLM / Google Drive etc...を利用しており、特にNotebookLMにはお世話になりました。[^1]Google AI ProからGWSへ移行しましたが、使用感としてはあまり変わらない印象です。
 
 GWSの良さを挙げると以下かなと個人的には思っています。
 
@@ -66,20 +66,19 @@ Registrarは想定外の料金や不要なアドオンを排除します。登�
 :::
 と明言されています。
 
-他社との細かい料金の比較は割愛しますが、GWS経由でドメインを登録する場合は、今回取得した`.org`ドメインで最初の1年間は**年額**1,400円、1年経過後は大体**月額**1,180円~1,480円程度かかってしまいます。
-現在のGWSのドメインの価格体系は、最初の1年間は以下のような契約コンソール上の価格でドメインを購入することができますが、1年経過後は[Squarespaceのサブスクリプションの価格](https://ja.squarespace.com/pricing?channel=pbr&subchannel=go&campaign=pbr-go-row_japan-multi-core_general-mix&subcampaign=(price-jp_squarespace-%E4%BE%A1%E6%A0%BC_phr)&gclsrc=aw.ds&gad_source=1&gad_campaignid=23337823389&gbraid=0AAAAADxS_FIPUnW0Aj0k4NMVwZ1ASiRv0&gclid=Cj0KCQiA4eHLBhCzARIsAJ2NZoJ-oghsUkJSoATpK0LLjmDyD_IoKwYCfRtbbAnpQZ4wDpVRzxo4j6kaAq-2EALw_wcB)[^3]となってしまいます。
+他社との細かい料金の比較は割愛しますが、GWS経由でドメインを登録する場合は、今回取得した`.org`ドメインで最初の1年間は**年額**1,400円、1年経過後はSquarespace[^3]のサブスクリプションで更新されるそうです。これがどこのサブスクリプションを意味しているか実際に契約しないとわからないですが。[こちらのサイト](https://domains.squarespace.com/)で購入するドメインの料金になるのか、[こちらのサイト](https://ja.squarespace.com/pricing?channel=pbr&subchannel=go&campaign=pbr-go-row_japan-multi-core_general-mix&subcampaign=(price-jp_squarespace-%E4%BE%A1%E6%A0%BC_phr)&gclsrc=aw.ds&gad_source=1&gad_campaignid=23337823389&gbraid=0AAAAADxS_FIPUnW0Aj0k4NMVwZ1ASiRv0&gclid=Cj0KCQiA4eHLBhCzARIsAJ2NZoJ-oghsUkJSoATpK0LLjmDyD_IoKwYCfRtbbAnpQZ4wDpVRzxo4j6kaAq-2EALw_wcB)のサブスクリプションの価格体系になるのかわかりません。
+(情報ある方いらっしゃれば情報いただきたいです)
 ![gws-first-year-cost](/images/gws-using-cloudflare/gws-domain-first-year-cost.png)
-*契約時のドメイン購入画面*
+*契約時のドメイン購入画面の例*
 
 ![gws-domain-cost](/images/gws-using-cloudflare/gws-domain-cost.png)
 *[Google サービスのお申込時にドメインを購入する | Google Workspace管理者ヘルプ](https://support.google.com/a/answer/53929?hl=ja&sjid=4769540298305338798-NC#zippy=%2Csquarespace-%E3%81%8B%E3%82%89%E8%B3%BC%E5%85%A5%E3%81%99%E3%82%8B%E3%83%A1%E3%83%AA%E3%83%83%E3%83%88)より引用*
 
-つまり、1年目は年額1,400円ですが、2年目以降は14,160円~17,760円かかってしまうということです！2年目以降高い！！
-ちょっと、2年目以降は契約する気にならないですね。
+つまり、1年目は年額1,400円ですが、2年目以降はSquarespaceに依存した価格体系になります！実際に契約してみないとわからん！！
 
 #### GWS契約時のDNSレコードの設定がとても楽ちん
-手順自体は後述しますが、GWS契約する際にTXTレコードをCloudflareで取得したドメインに紐づけして、ドメインの所有権を証明する必要があります。これを**とても簡単に**実施できます。Google側で公開している手順は[こちら](https://support.google.com/a/answer/16018515?sjid=4769540298305338798-NC&visit_id=639051660988172574-4184249832&rd=1)にありますが、公開された手順など不要なくらい簡単です。GoogleWorkspace管理者コンソールとCloudflareのダッシュボードを行き来する必要があるのですが、それもすべてGWS契約時のコンソールをポチポチすれば終わります。所要時間は5分程度です。
-GWS経由でドメインを取得した場合は、この設定はすでに実施されておりこの手間が省けるのですが、この手間を省くために年額15,000円くらい支払うのはちょっともったいない気がしますね。
+手順自体は後述しますが、GWS契約する際にTXTレコード[^4] / MXレコード[^5] / SPFレコード[^6]をCloudflareで取得したドメインに紐づける必要があります。これを**とても簡単に**実施できます。Google側で公開している手順は[こちら](https://support.google.com/a/answer/16018515?sjid=4769540298305338798-NC&visit_id=639051660988172574-4184249832&rd=1)にありますが、公開された手順など不要なくらい簡単です。Google Workspace管理者コンソールとCloudflareのダッシュボードを行き来する必要があるのですが、それもすべてGWS契約時のコンソールをポチポチすれば終わります。所要時間は5分程度です。
+GWS経由でドメインを取得した場合は、この設定はすでに実施されておりこの手間が省けるのですが、この手間を省くほどに価格に魅力があるかわかりません。
 
 #### Cloudflareのその他の機能も無料枠があり、Webサイトも簡単に作れる
 この話はCloudflare自体の機能についてなので、他の方がたくさん言及されているので簡単に紹介します。
@@ -257,9 +256,11 @@ Cloudflareを選ぶと、今回触れた DNS 以外にも
 - すでに別のメール基盤を使っているドメインに対して MX を切り替えると、メール配送に影響が出ます（切り替えタイミングは慎重に）
 - 記事にスクショを載せる場合、MX/TXT自体は公開情報ですが、管理画面上のメールアドレス等の個人情報が写り込むのでマスク推奨です
 
-Cloudflareを利用することで「コストが半額以下になる」以上の恩恵（運用のしやすさ、拡張性）を受けられるので、
-個人でもGoogle Workspaceを使いたい方は、ぜひこの構成を検討してみてください。
+Cloudflareを利用することで様々な恩恵（運用のしやすさ、拡張性）を受けられるので、個人でもGoogle Workspaceを使いたい方は、ぜひこの構成を検討してみてください。
 
 [^1]: 「[NotebookLM × Gemini でGoogle Cloud Professional資格を2ヶ月で制覇する](https://zenn.dev/nttdata_tech/articles/c6261a67c277cc)」NotebookLMに関してはこのような記事を書いているのでご興味あれば読んでみてください。
 [^2]: [以前書いたテックブログ](https://zenn.dev/terrako/articles/fb7cb47203ef32)ではCloud Runに直接IAPをアタッチする機能を用いたのですが、この機能は組織が有効化されていないと利用できない機能でした。
 [^3]: SquarespaceはGoogle Domainの事業を継承したサービスになっています。
+[^4]: **TXTレコード**は、ドメイン（例: `example.com`）に任意の文字列を紐づけるDNSレコードです。Google Workspaceでは主に「ドメイン所有権の証明」で使われ、指定されたトークン文字列をTXTとして追加することで、Googleがそのドメインを操作できることを確認します。
+[^5]: **MXレコード**は、そのドメイン宛のメールを「どのメールサーバーで受け取るか」を指定するDNSレコードです。Gmailを使う場合は、Googleが指定する複数のMX（優先度付き）を設定することで、`@your-domain` 宛メールがGmailに届くようになります。
+[^6]: **SPF （Sender Policy Framework）** は、送信元ドメインのなりすましを減らすための仕組みで、「このドメインからメールを送ってよい送信元」を宣言します。多くの環境では **TXTレコードとして `v=spf1 ...` の形式**で設定します（SPFは複数作らず、基本は1本に統合します）。
