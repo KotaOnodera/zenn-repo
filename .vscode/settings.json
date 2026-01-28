@@ -3,6 +3,15 @@
     "default": true,
     "MD025": false, // Multiple top-level headings in the same document(https://github.com/DavidAnson/markdownlint/blob/v0.37.4/doc/md025.md)
     "MD034": false, // Bare URL used(
-    "MD024": false  // Multiple headings with the same content
+    "MD024": false // Multiple headings with the same content
   },
+  "cSpell.words": [
+    "ABEMA",
+    "googlecloud",
+    "googleworkspace",
+    "MEKIKI",
+    "nttdata",
+    "Ovserbavility",
+    "teratech"
+  ],
 }
