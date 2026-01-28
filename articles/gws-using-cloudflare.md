@@ -8,6 +8,7 @@ topics:
   - "domain"
   - "個人開発"
 published: false
+publication_name: "nttdata_tech"
 ---
 
 ## はじめに
