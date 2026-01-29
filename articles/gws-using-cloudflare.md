@@ -67,7 +67,7 @@ Registrarは想定外の料金や不要なアドオンを排除します。登�
 :::
 と明言されています。
 
-他社との細かい料金の比較は割愛しますが、GWS経由でドメインを登録する場合は、今回取得した`.org`ドメインで最初の1年間は**年額**1,400円、1年経過後はSquarespace[^3]のサブスクリプションで更新されるそうです。これがどこのサブスクリプションを意味しているか実際に契約しないとわからないですが。[こちらのサイト](https://domains.squarespace.com/)で購入するドメインの料金になるのか、[こちらのサイト](https://ja.squarespace.com/pricing?channel=pbr&subchannel=go&campaign=pbr-go-row_japan-multi-core_general-mix&subcampaign=(price-jp_squarespace-%E4%BE%A1%E6%A0%BC_phr)&gclsrc=aw.ds&gad_source=1&gad_campaignid=23337823389&gbraid=0AAAAADxS_FIPUnW0Aj0k4NMVwZ1ASiRv0&gclid=Cj0KCQiA4eHLBhCzARIsAJ2NZoJ-oghsUkJSoATpK0LLjmDyD_IoKwYCfRtbbAnpQZ4wDpVRzxo4j6kaAq-2EALw_wcB)のサブスクリプションの価格体系になるのかわかりません。
+他社との細かい料金の比較は割愛しますが、GWS経由でドメインを登録する場合は、今回取得した`.org`ドメインで最初の1年間は**年額**1,400円、1年経過後はSquarespace[^3]のサブスクリプションで更新されるそうです。これがどこのサブスクリプションを意味しているか実際に契約しないとわからないですが。[こちらのサイト](https://domains.squarespace.com/)で購入するドメインの料金になるのか、[こちらのサイト](https://ja.squarespace.com/pricing)のサブスクリプションの価格体系になるのかわかりません。
 (情報ある方いらっしゃれば情報いただきたいです)
 ![gws-first-year-cost](/images/gws-using-cloudflare/gws-domain-first-year-cost.png)
 *契約時のドメイン購入画面の例*
@@ -76,6 +76,7 @@ Registrarは想定外の料金や不要なアドオンを排除します。登�
 *[Google サービスのお申込時にドメインを購入する | Google Workspace管理者ヘルプ](https://support.google.com/a/answer/53929?hl=ja&sjid=4769540298305338798-NC#zippy=%2Csquarespace-%E3%81%8B%E3%82%89%E8%B3%BC%E5%85%A5%E3%81%99%E3%82%8B%E3%83%A1%E3%83%AA%E3%83%83%E3%83%88)より引用*
 
 つまり、1年目は年額1,400円ですが、2年目以降はSquarespaceに依存した価格体系になります！実際に契約してみないとわからん！！
+Cloudflareでは原価で販売していると明示されているので、不要な料金が上乗せされることはないので安心です。
 
 #### GWS契約時のDNSレコードの設定がとても楽ちん
 手順自体は後述しますが、GWS契約する際にTXTレコード[^4] / MXレコード[^5] / SPFレコード[^6]をCloudflareで取得したドメインに紐づける必要があります。これを**とても簡単に**実施できます。Google側で公開している手順は[こちら](https://support.google.com/a/answer/16018515?sjid=4769540298305338798-NC&visit_id=639051660988172574-4184249832&rd=1)にありますが、公開された手順など不要なくらい簡単です。Google Workspace管理者コンソールとCloudflareのダッシュボードを行き来する必要があるのですが、それもすべてGWS契約時のコンソールをポチポチすれば終わります。所要時間は5分程度です。
