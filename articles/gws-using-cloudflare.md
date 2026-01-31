@@ -1,7 +1,7 @@
 ---
 title: "Cloudflareでドメインを取得して個人でGoogle Workspaceを契約しよう"
 emoji: "⛅️"
-type: "idea" # tech: 技術記事 / idea: アイデア
+type: "tech" # tech: 技術記事 / idea: アイデア
 topics:
   - "googleworkspace"
   - "cloudflare"
@@ -13,11 +13,11 @@ publication_name: "nttdata_tech"
 
 ## はじめに
 
-エンジニアの方もエンジニアではない方も、こんにちは。これまでは金融業界で SRE としてGoogle CloudのプロジェクトにJoinしていましたが、最近プロジェクトが変わり、AWSに挑戦しています。
+エンジニアの方もエンジニアではない方も、こんにちは。これまでは金融業界で SRE としてGoogle CloudのプロジェクトにJoinしていましたが、最近プロジェクトが変わり、Amazon Web Services(AWS) に挑戦しています。
 先日は[Google Cloud Partner Top Engineer 2026](
 https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
 
-みなさんは、Google Workspace (以下GWS) を契約していますか？GWSを契約し、各種機能を利用するにあたり、独自ドメインを取得・登録する必要があります。独自ドメインを取得する方法はたくさんありますが、私は**Cloudflare**でドメインを取得しています。詳しくは後述しますが、Cloudflareは比較的リリーズナブル、かつドメイン取得に追加料金や更新料の値上げはないと明示されているためコストの見通しが立ちやすいと考えています。
+みなさんは、Google Workspace (以下GWS) を契約していますか？GWSを契約し、各種機能を利用するにあたり、独自ドメインを取得・登録する必要があります。独自ドメインを取得する方法はたくさんありますが、私は**Cloudflare**でドメインを取得しています。詳しくは後述しますが、Cloudflareは比較的リーズナブル、かつドメイン取得に追加料金や更新料の値上げはないと明示されているためコストの見通しが立ちやすいと考えています。
 私はCloudflareで `.org`ドメインを年間$10で契約して、GWSは月額1,900円で契約しています。**なぜ、Cloudflareでドメインを取得することになったのか、ドメイン取得からGWSの契約の手順を簡単に解説しようと思います**。
 
 ## 想定読者
@@ -34,10 +34,10 @@ https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-g
 まず、以下の画像をご覧ください。
 Googleのエコシステムの画像ですが、AIを中心に据えて、多種多様なサービスを展開しています。Google内の多種多様なサービス内でGeminiを利用することができるということです！
 :::message
-最近はGoogle PhotoやGoogle MapにもGeminiが搭載されていたり、GeminiのリソースとしてNotebookLMが利用できたりと、**Geminiで扱える範囲はさらに拡大しています**。
+最近はGoogle PhotosやGoogle MapsにもGeminiが搭載されていたり、GeminiのリソースとしてNotebookLMが利用できたりと、**Geminiで扱える範囲はさらに拡大しています**。
 :::
 ![google-ecosystem](/images/gws-using-cloudflare/google-ecosystem.jpeg)
-*Googleのエコシステム*
+*Googleのエコシステム ([こちらのポスト](https://x.com/Hoshino_AISales/status/2016255115074605564?s=20)より引用)*
 
 元々、[Google AI Pro](https://one.google.com/intl/ja_jp/about/google-ai-plans/)を契約していました。こちらの契約は月額2,900円です。私は[Standardプラン](https://workspace.google.co.jp/pricing?hl=ja)を契約している (月額契約で1,900円) のですが、契約単体で見ると1,000円近くコストカットできます。また、契約した当時にGWSのアルファ機能としてGoogle Workspace Flows (現在は[Google Workspace Studioというサービス名に変更されています](https://dev.classmethod.jp/articles/trying-google-workspace-flows-alpha/))というサービスがリリースされ、使ってみたいと思いGWSに移行しようと思い立ちました。
 Google AI Proを契約していたので、Google系のサービスは以前から課金して利用していました。Gemini / NotebookLM / Google Drive etc...を利用しており、特にNotebookLMにはお世話になりました。[^1]Google AI ProからGWSへ移行しましたが、使用感としてはあまり変わらない印象です。
@@ -80,7 +80,7 @@ Cloudflareでは原価で販売していると明示されているので、不�
 
 #### GWS契約時のDNSレコードの設定がとても楽ちん
 手順自体は後述しますが、GWS契約する際にTXTレコード[^4] / MXレコード[^5] / SPFレコード[^6]をCloudflareで取得したドメインに紐づける必要があります。これを**とても簡単に**実施できます。Google側で公開している手順は[こちら](https://support.google.com/a/answer/16018515?sjid=4769540298305338798-NC&visit_id=639051660988172574-4184249832&rd=1)にありますが、公開された手順など不要なくらい簡単です。Google Workspace管理者コンソールとCloudflareのダッシュボードを行き来する必要があるのですが、それもすべてGWS契約時のコンソールをポチポチすれば終わります。所要時間は5分程度です。
-GWS経由でドメインを取得した場合は、この設定はすでに実施されておりこの手間が省けるのですが、この手間を省くほどに価格に魅力があるかわかりません。
+GWS経由でドメインを取得した場合は、この設定はすでに実施されておりこの手間が省けるのですが、価格面で十分なメリットがあるかは検討の必要があります。
 
 #### Cloudflareのその他の機能も無料枠があり、Webサイトも簡単に作れる
 この話はCloudflare自体の機能についてなので、他の方がたくさん言及されているので簡単に紹介します。
@@ -251,7 +251,7 @@ Cloudflareを選ぶと、今回触れた DNS 以外にも
 - Pages/Workers/R2 など、個人開発で便利な機能
 - DNS/SSL/TLS 周りの管理がしやすい
 
-といった恩恵があり、単なる「ドメイン屋さん」以上の価値があります。
+といった恩恵があり、単なる「ドメイン管理サービス」以上の価値があります。
 
 ### 運用上の注意(最低限ここだけ)
 
