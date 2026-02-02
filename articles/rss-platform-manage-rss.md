@@ -21,6 +21,7 @@ https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-g
 RSSを利用するには主にRSSリーダーを利用することが多いかと思います。
 
 ## 対象読者
+
 - RSSを利用してインプットしたい人
 - 無料でRSSを取得するツールが欲しい人
 - RSSの内容をGoogle Workspace横断で管理したい人
@@ -30,6 +31,7 @@ RSSを利用するには主にRSSリーダーを利用することが多いか�
 ## Google Workspaceで実装するメリット
 
 主なメリットは以下に記載したものかなと思っています。
+
 - 無料で実装することができる
 - マルチデバイスに対応してる
 - Spreadsheet ベースでRSSを簡単に管理できる
@@ -39,6 +41,7 @@ RSSを利用するには主にRSSリーダーを利用することが多いか�
 ## Googleプロダクト / シーケンス図
 
 RSSを取得しているGoogleプロダクトとデータの流れは以下の通りです。
+
 - Google App Script
   - RSS取得を定期実行し、Spreadsheet / Google Chatへ出力
 - Spreadsheet
@@ -47,16 +50,28 @@ RSSを取得しているGoogleプロダクトとデータの流れは以下の�
   - 取得したRSS情報をもとに、該当のサイト情報を出力する宛先
   - ユーザーはGoogle Chatを見ることで、情報をインプット可能
   
+::message
+**注意事項**
+
+::
+
 ![sequence](/images/rss-platform/sequesnce.png)
 
 ## Google App Script
 
 詳細は以下のGitHubを見て下さい。セットアップ方法も記載しています。
+https://github.com/KotaOnodera/manage-rss
 
 ## Spreadsheet
 
 ## Google Chat
 
 上記のGoogle App ScriptとSpreadsheet をセットアップ完了し、実行すると以下のようにRSSの情報をもとにサイト情報が配信されます。
+![google-chat-pc](/images/rss-platform/google-chat-pc.png)
+:Google Chat PC版:
+
+Google Chatへの配信なのでスマホでもGoogle Chatのアプリを入れれば、配信されたRSSを見ることができます。
+![google-chat-phone](/images/rss-platform/google-chat-phone.png)
+:Google Chat Phone板:
 
 ## おわりに
