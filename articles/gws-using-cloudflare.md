@@ -7,7 +7,7 @@ topics:
   - "cloudflare"
   - "domain"
   - "個人開発"
-published: false
+published: true
 publication_name: "nttdata_tech"
 ---
 
