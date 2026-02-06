@@ -5,8 +5,8 @@ type: "tech" # tech: 技術記事 / idea: アイデア
 topics:
   - "rss"
   - "googleappscript"
-  - “spreadsheet”
-  - “googlechat”
+  - "spreadsheet"
+  - "googlechat"
   - "googleworkspace"
 published: false
 ---
@@ -30,6 +30,8 @@ https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-g
 
 - RSSを利用してインプットしたい人
 - 無料でRSSを取得するツールが欲しい人
+  - 本記事内で紹介しているGoogle Workspaceの契約は別途料金がかかります
+  - RSSを取得 / 配信 / 閲覧するのみであれば無料で実装できます
 - RSSの内容をGoogle Workspace横断で管理したい人
 
 ## RSSとは
