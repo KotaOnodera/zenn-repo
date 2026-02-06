@@ -9,6 +9,7 @@ topics:
   - "googlechat"
   - "googleworkspace"
 published: false
+publication_name: "nttdata_tech"
 ---
 
 ## はじめに
