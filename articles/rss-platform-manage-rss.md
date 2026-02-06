@@ -59,7 +59,7 @@ RSS (Really Simple Syndication / Rich Site Summary) は、Webサイトの更新�
 
 - 無料で実装することができる
   - Googleアカウントを持っていれば本記事で紹介するGoogleプロダクトを利用することができ、無料で実装できる
-  - 注意点にも挙げますが、Google App Scriptは無料枠の中で利用する必要あり
+  - 注意点にも挙げますが、Google Apps Scriptは無料枠の中で利用する必要あり
 - マルチデバイスに対応してる
   - Google Chatで配信されたRSSを閲覧するため、スマホ / PC / タブレットに対応
 - Spreadsheet ベースでRSSを簡単に管理できる
@@ -77,7 +77,7 @@ RSS (Really Simple Syndication / Rich Site Summary) は、Webサイトの更新�
 
 RSSを取得しているGoogleプロダクトとデータの流れは以下の通りです。
 
-- Google App Script
+- Google Apps Script
   - RSS取得を定期実行し、Spreadsheet / Google Chatへ出力
 - Spreadsheet
   - RSS配信のサイト / Google Chatの宛先などの管理
@@ -85,7 +85,7 @@ RSSを取得しているGoogleプロダクトとデータの流れは以下の�
   - 取得したRSS情報をもとに、該当のサイト情報を出力する宛先
   - ユーザーはGoogle Chatを見ることで、情報をインプット可能
   
-:::message
+:::message alert
 **注意事項**
 
 - Google Apps Script (GAS)にはクォータ (実行数・実行時間など) の上限があります。取得対象サイト数やトリガー実行頻度を増やしすぎると、途中でエラーになったり実行がスキップされる可能性があります。
@@ -96,7 +96,7 @@ RSSを取得しているGoogleプロダクトとデータの流れは以下の�
 
 ![sequence](/images/rss-platform/sequesnce.png)
 
-## Google App Script
+## Google Apps Script
 
 詳細は以下のGitHubで紹介しています。セットアップ方法も記載していますので、参照しながらセットアップ / 実装してみてください。
 スクリプトプロパティを設定して実行すれば動きます。
@@ -159,13 +159,13 @@ Chat投稿を見たときに視認性が上がり、「どのサイト由来の�
 
 ## Google Chat
 
-上記のGoogle App ScriptとSpreadsheet をセットアップ完了し、実行すると以下のようにRSSの情報をもとにサイト情報が配信されます。
+上記のGoogle Apps ScriptとSpreadsheet をセットアップ完了し、実行すると以下のようにRSSの情報をもとにサイト情報が配信されます。
 ![google-chat-pc](/images/rss-platform/google-chat-pc.png)
 *Google Chat PC版*
 
 Google Chatへの配信なのでスマホでもGoogle Chatのアプリを入れれば、配信されたRSSを見ることができます。
 ![google-chat-phone](/images/rss-platform/google-chat-phone.png)
-*Google Chat Phone板*
+*Google Chat Phone版*
 
 ## おわりに
 
