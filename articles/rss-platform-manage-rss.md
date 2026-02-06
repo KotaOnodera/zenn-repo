@@ -18,7 +18,8 @@ publication_name: "nttdata_tech"
 先日は[Google Cloud Partner Top Engineer 2026](
 https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
 
-みなさんは普段、どのようなインプットをしていますか？私は「自分から情報を収集しなくても、自動で技術情報が目に入る仕組み」としてRSSを使っています。RSSを利用するには主にRSSリーダーを利用することが多いかと思います。
+みなさんは普段、どのようなインプットをしていますか？
+私は「自分から情報を収集しなくても、自動で技術情報が目に入る仕組み」としてRSSを使っています。RSSを利用するには主にRSSリーダーを利用することが多いかと思います。
 私はRSS取得 / 配信 / 閲覧をGoogle Workspace内のサービスで完結して実装しています。RSS取得 / 配信 / 閲覧する環境のことを本記事では「RSSプラットフォーム」と位置づけ、紹介していこうと思います。
 本記事の構成を取ることで、無料でRSSプラットフォームを構築することができ、**快適なインプット環境**を構築することができます。また、Google Workspace内で完結しているので、Google Workspaceのメリットを存分に享受できるのも魅力の1つです。Google Workspaceの魅力については以前執筆した[こちらの記事](https://zenn.dev/nttdata_tech/articles/gws-using-cloudflare)で語っていますので、ぜひご一読してもらえればと思います。
 
@@ -27,12 +28,13 @@ https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-g
 本記事を参考にRSSプラットフォームを構築すると**スマホで**以下のように、配信されたRSSを閲覧することが可能です。画像では「Qiitaから配信される`Google Cloud`タグのRSS」「Google CloudのRelease Noteから配信されるRSS」「Zennから配信される`GAS`タグのRSS」がGoogle Chatに配信され、スマホから閲覧できています。後述しますが、**もちろんPCやタブレットからでも閲覧可能**です。
 ![google-chat-phone](/images/rss-platform/google-chat-phone.png)
 
+とにかく実装したい人は以下のGitHubにコードを公開しているので、記事はすっ飛ばして実装してみてください。
+https://github.com/KotaOnodera/manage-rss
+
 ## 対象読者
 
 - RSSを利用してインプットしたい人
 - 無料でRSSを取得するツールが欲しい人
-  - 本記事内で紹介しているGoogle Workspaceの契約は別途料金がかかります
-  - RSSを取得 / 配信 / 閲覧するのみであれば無料で実装できます
 - RSSの内容をGoogle Workspace横断で管理したい人
 
 ## RSSとは
@@ -63,8 +65,8 @@ RSS (Really Simple Syndication / Rich Site Summary) は、Webサイトの更新�
 - Spreadsheet ベースでRSSを簡単に管理できる
   - SpreadsheetをRSSのすべてを管理するDBとして利用しているため、Spreadsheetを操作することでRSSを管理可能
   - Spreadsheetがマルチデバイス対応しているため、「いついかなるとき」でもRSSを管理可能
-- Google Chat / Spreadsheet 内でGeminiを利用することができる
-  - Google Workspace契約者のみの機能ではあるが、即座にGeminiを呼び出し可能
+- (Google Chat / Spreadsheet 内でGeminiを利用することができる)
+  - Google Workspaceを有料で契約している人のみではあるが、各プロダクト内からGeminiを呼び出し可能
   - Google Chat内の単語を検索したり、配信されたRSSの情報をもとに分析したり
 - Googleプロダクトと組み合わせることができる
   - (私は実践できていませんが) NotebookLMにSpreadsheetを読み込ませてみたり
@@ -96,7 +98,8 @@ RSSを取得しているGoogleプロダクトとデータの流れは以下の�
 
 ## Google App Script
 
-詳細は以下のGitHubを見て下さい。セットアップ方法も記載しています。
+詳細は以下のGitHubで紹介しています。セットアップ方法も記載していますので、参照しながらセットアップ / 実装してみてください。
+スクリプトプロパティを設定して実行すれば動きます。
 https://github.com/KotaOnodera/manage-rss
 
 ## Spreadsheet
