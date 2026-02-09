@@ -1,5 +1,5 @@
 ---
-title: "Google Workspaceで実現するRSSプラットフォーム"
+title: "Google Workspaceで実現する無料RSSプラットフォーム"
 emoji: "🦖"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics:
@@ -21,7 +21,7 @@ https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-g
 みなさんは普段、どのようなインプットをしていますか？
 私は「自分から情報を収集しなくても、自動で技術情報が目に入る仕組み」としてRSSを使っています。RSSを利用するには主にRSSリーダーを利用することが多いかと思います。
 私はRSS取得 / 配信 / 閲覧をGoogle Workspace内のサービスで完結して実装しています。RSS取得 / 配信 / 閲覧する環境のことを本記事では「RSSプラットフォーム」と位置づけ、紹介していこうと思います。
-本記事の構成を取ることで、無料でRSSプラットフォームを構築することができ、**快適なインプット環境**を構築することができます。また、Google Workspace内で完結しているので、Google Workspaceのメリットを存分に享受できるのも魅力の1つです。Google Workspaceの魅力については以前執筆した[こちらの記事](https://zenn.dev/nttdata_tech/articles/gws-using-cloudflare)で語っていますので、ぜひご一読してもらえればと思います。
+本記事の構成を取ることで、**無料で**RSSプラットフォームを構築することができ、快適なインプット環境を構築することができます。また、Google Workspace内で完結しているので、Google Workspaceのメリットを存分に享受できるのも魅力の1つです。Google Workspaceの魅力については以前執筆した[こちらの記事](https://zenn.dev/nttdata_tech/articles/gws-using-cloudflare)で語っていますので、ぜひご一読してもらえればと思います。
 
 ### RSSプラットフォームUXイメージ
 最初に本記事で紹介するRSSプラットフォームが "どんなもんか" の想像がしやすいようにイメージを紹介します。
@@ -170,7 +170,7 @@ Google Chatへの配信なのでスマホでもGoogle Chatのアプリを入れ�
 ## おわりに
 
 本記事では、Google Apps Script / Spreadsheet / Google Chat のみで完結する「RSSプラットフォーム」を紹介しました。
-RSSリーダーを使わずとも、**Spreadsheetで配信対象や頻度を管理し、Google Chatに自動配信してスマホ/PCで読む**ところまでを、無料 (クォータ内) で構築できます。
+RSSリーダーを使わずとも、**Spreadsheetで配信対象や頻度を管理し、Google Chatに自動配信してスマホ / PCで読む**ところまでを、無料 (クォータ内) で構築できます。
 
 運用のコツは「最初は小さく始めて、育てる」ことです。
 
