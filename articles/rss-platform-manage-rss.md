@@ -8,7 +8,7 @@ topics:
   - "spreadsheet"
   - "googlechat"
   - "googleworkspace"
-published: false
+published: true
 publication_name: "nttdata_tech"
 ---
 
