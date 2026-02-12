@@ -14,7 +14,7 @@ publication_name: "nttdata_tech"
 
 ## はじめに
 
-エンジニアの方もエンジニアではない方も、こんにちは。これまでは金融業界で SRE としてGoogle CloudのプロジェクトにJoinしていましたが、最近プロジェクトが変わり、AWSに挑戦しています。
+エンジニアの方もエンジニアではない方も、こんにちは。これまでは金融業界で SRE としてGoogle CloudのプロジェクトにJoinしていましたが、最近プロジェクトが変わり、Amazon Web Services (AWS) に挑戦しています。
 先日は[Google Cloud Partner Top Engineer 2026](
 https://cloud.google.com/blog/ja/topics/partners/announcing-the-winners-of-the-google-cloud-partner-top-engineer-2026-award-program) に選出していただきました！
 
@@ -70,7 +70,7 @@ RSS (Really Simple Syndication / Rich Site Summary) は、Webサイトの更新�
   - Google Chat内の単語を検索したり、配信されたRSSの情報をもとに分析したり
 - Googleプロダクトと組み合わせることができる
   - (私は実践できていませんが) NotebookLMにSpreadsheetを読み込ませてみたり
-  - GAS内でVertexAIを呼び出して、処理の一部でAIを利用したり
+  - GAS内でVertex AIを呼び出して、処理の一部でAIを利用したり
   - テックブログを要約する機能をGoogle Chatから呼び出せるようにしてみたり (RSSプラットフォーム第2弾の記事で紹介予定です)
 
 ## Googleプロダクト / シーケンス図
